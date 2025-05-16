@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminLayout from './components/admin/AdminLayout';
+import FirebaseTest from './components/FirebaseTest';
 
 // Public Pages
 import Layout from './components/layout/Layout';
@@ -25,6 +26,7 @@ import AdminResearch from './pages/admin/Research';
 function App() {
   return (
     <AuthProvider>
+      <FirebaseTest />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Layout><Home /></Layout>} />

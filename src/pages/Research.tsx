@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db } from '../config/firebase.config';
 import Section from '../components/ui/Section';
 import ResearchCard from '../components/ui/ResearchCard';
 import { FaArrowRight, FaLaptop, FaRobot, FaLock, FaCalculator } from 'react-icons/fa';

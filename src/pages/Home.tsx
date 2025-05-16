@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { FaLightbulb, FaEye, FaBullseye, FaArrowRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db } from '../config/firebase.config';
 
 import Section from '../components/ui/Section';
 import Hero from '../components/ui/Hero';
