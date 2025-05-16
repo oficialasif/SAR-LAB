@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaHome, FaFlask, FaHistory, FaNewspaper, FaUsers, FaQuestionCircle, FaMicroscope } from 'react-icons/fa';
+import { FaHome, FaFlask, FaHistory, FaNewspaper, FaUsers, FaQuestionCircle, FaMicroscope, FaLock } from 'react-icons/fa';
 import { IoMdClose, IoMdMenu } from 'react-icons/io';
 import type { ReactElement } from 'react';
 
@@ -49,6 +49,7 @@ const navItems: NavItem[] = [
   },
   { title: 'Team', path: '/team', icon: <FaUsers className="text-xl" /> },
   { title: 'FAQ', path: '/faq', icon: <FaQuestionCircle className="text-xl" /> },
+  { title: 'Admin', path: '/admin/login', icon: <FaLock className="text-xl" /> },
 ];
 
 export default function Sidebar() {
@@ -131,7 +132,7 @@ export default function Sidebar() {
       
       {/* Sidebar */}
       <motion.aside
-        className="fixed top-0 left-0 z-30 h-full w-64 bg-gray-100 shadow-lg md:shadow-md"
+        className="fixed top-0 left-0 z-30 h-full w-64 bg-gray-100 shadow-lg md:shadow-md flex flex-col"
         initial={false}
         animate={isMobile ? (isOpen ? "open" : "closed") : "open"}
         variants={sidebarVariants}
@@ -148,7 +149,7 @@ export default function Sidebar() {
         </div>
         
         {/* Navigation */}
-        <nav className="p-4">
+        <nav className="p-4 flex-grow">
           <ul className="space-y-2">
             {navItems.map((item) => (
               <li key={item.title}>
