@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../../config/firebase';
+
+import { db } from '../../config/firebase';
 import { FaPlus, FaEdit, FaTrash, FaBold, FaItalic, FaUnderline } from 'react-icons/fa';
 
 interface Research {
@@ -31,7 +31,7 @@ export default function ResearchManagement() {
     abstract: '',
     content: '', // Rich text content
     imageUrl: '', // Image URL
-    status: 'planning' as const,
+    status: 'planning' as Research['status'],
     category: 'nlp' as Research['category'],
     authors: '',
     pdfUrl: '',
@@ -138,8 +138,8 @@ export default function ResearchManagement() {
         abstract: formData.abstract,
         content: formData.content,
         imageUrl: formData.imageUrl,
-        status: formData.status,
-        category: formData.category,
+        status: formData.status as Research['status'],
+        category: formData.category as Research['category'],
         authors: formData.authors.split(',').map(author => author.trim()),
         pdfUrl: formData.pdfUrl,
         publicationDate: formData.publicationDate ? Timestamp.fromDate(new Date(formData.publicationDate)) : null,
@@ -147,11 +147,15 @@ export default function ResearchManagement() {
         venue: formData.venue,
         doi: formData.doi,
         createdAt: editingResearch?.createdAt || Timestamp.now()
-      } as Research;
+      };
 
       if (editingResearch) {
         // Update existing research
-        await updateDoc(doc(db!, 'research', editingResearch.id), researchData);
+        const updateData = {
+          ...researchData,
+          publicationDate: researchData.publicationDate || null // Ensure null if undefined
+        };
+        await updateDoc(doc(db!, 'research', editingResearch.id), updateData);
         
         // Add activity log
         await addDoc(collection(db!, 'activities'), {

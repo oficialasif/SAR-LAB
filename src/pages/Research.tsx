@@ -28,35 +28,35 @@ const researchCategories = [
     title: 'All Research',
     description: 'All our research papers across different domains',
     icon: <FaArrowRight className="text-gray-600" size={24} />,
-    color: 'gray'
+    colorClass: 'text-gray-600 border-gray-600'
   },
   {
     id: 'nlp',
     title: 'Natural Language Processing',
     description: 'Our NLP research focuses on advancing the understanding, generation, and analysis of human language by machines.',
     icon: <FaRobot className="text-purple-600" size={24} />,
-    color: 'purple'
+    colorClass: 'text-purple-600 border-purple-600'
   },
   {
     id: 'vision',
     title: 'Computer Vision',
     description: 'Our computer vision research develops systems that can analyze, understand, and interpret visual information from the world.',
     icon: <FaLaptop className="text-blue-600" size={24} />,
-    color: 'blue'
+    colorClass: 'text-blue-600 border-blue-600'
   },
   {
     id: 'quantum',
     title: 'Quantum Computing',
     description: 'Our quantum computing research explores the frontier of computation using quantum mechanical phenomena.',
     icon: <FaCalculator className="text-green-600" size={24} />,
-    color: 'green'
+    colorClass: 'text-green-600 border-green-600'
   },
   {
     id: 'security',
     title: 'Cybersecurity',
     description: 'Our cybersecurity research focuses on protecting systems, networks, and data from digital attacks and unauthorized access.',
     icon: <FaLock className="text-red-600" size={24} />,
-    color: 'red'
+    colorClass: 'text-red-600 border-red-600'
   }
 ];
 
@@ -171,7 +171,7 @@ export default function Research() {
                 key={category.id}
                 className={`inline-block p-4 text-sm font-medium border-b-2 ${
                   activeCategory === category.id
-                    ? `text-${category.color}-600 border-${category.color}-600`
+                    ? category.colorClass
                     : 'text-gray-500 border-transparent hover:text-primary-600 hover:border-primary-300'
                 } transition-colors whitespace-nowrap`}
                 onClick={() => handleCategoryChange(category.id)}
