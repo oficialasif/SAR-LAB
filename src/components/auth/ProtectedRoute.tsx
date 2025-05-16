@@ -10,6 +10,13 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { currentUser, loading } = useAuth();
   const location = useLocation();
 
+  // Debug: Log auth state
+  console.log('Protected Route State:', {
+    isLoading: loading,
+    hasUser: !!currentUser,
+    pathname: location.pathname
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -19,9 +26,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!currentUser) {
+    console.log('No user found, redirecting to login');
     // Redirect to login page but save the attempted url
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
+  console.log('User authenticated, rendering protected content');
   return <>{children}</>;
 } 
