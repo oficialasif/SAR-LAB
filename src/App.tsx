@@ -12,6 +12,8 @@ import History from './pages/History';
 import Team from './pages/public/Team';
 import News from './pages/News';
 import FAQ from './pages/FAQ';
+import ResearchPaperDetail from './pages/ResearchPaperDetail';
+import ProjectDetail from './pages/ProjectDetail';
 
 // Admin Pages
 import Login from './pages/admin/Login';
@@ -37,6 +39,7 @@ function App() {
         
         {/* Research Areas Routes */}
         <Route path="/research" element={<Layout><Research /></Layout>} />
+        <Route path="/research/:paperId" element={<Layout><ResearchPaperDetail /></Layout>} />
         <Route path="/research/nlp" element={<Layout><Navigate to="/research#nlp" replace /></Layout>} />
         <Route path="/research/vision" element={<Layout><Navigate to="/research#vision" replace /></Layout>} />
         <Route path="/research/quantum" element={<Layout><Navigate to="/research#quantum" replace /></Layout>} />
@@ -44,6 +47,7 @@ function App() {
         
         {/* Projects Routes */}
         <Route path="/projects" element={<Layout><Projects /></Layout>} />
+        <Route path="/projects/:projectId" element={<Layout><ProjectDetail /></Layout>} />
         <Route path="/projects/ai-agriculture" element={<Layout><Navigate to="/projects#ai-agriculture" replace /></Layout>} />
         <Route path="/projects/blockchain" element={<Layout><Navigate to="/projects#blockchain" replace /></Layout>} />
         <Route path="/projects/deepfake-detection" element={<Layout><Navigate to="/projects#deepfake-detection" replace /></Layout>} />

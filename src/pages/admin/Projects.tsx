@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaBold, FaItalic, FaUnderline } from 'react-icons/fa';
 
 interface Tag {
   name: string;
@@ -12,11 +12,14 @@ interface Project {
   id: string;
   title: string;
   description: string;
-  status: 'planned' | 'in-progress' | 'completed';
+  content: string; // Rich text content
+  status: 'planning' | 'in-progress' | 'completed' | 'published' | 'under-review' | 'on-hold';
   category: 'ai-agriculture' | 'blockchain' | 'deepfake-detection' | 'machine-learning';
   startDate: Timestamp;
   endDate?: Timestamp | null;
   imageUrl?: string;
+  liveUrl?: string;
+  githubUrl?: string;
   teamMembers: string[];
   tags: (string | Tag)[];
   featured: boolean;
@@ -31,11 +34,14 @@ export default function Projects() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    status: 'planned' as 'planned' | 'in-progress' | 'completed',
+    content: '', // Rich text content
+    status: 'planning' as 'planning' | 'in-progress' | 'completed' | 'published' | 'under-review' | 'on-hold',
     category: 'ai-agriculture' as Project['category'],
     startDate: '',
     endDate: '',
     imageUrl: '',
+    liveUrl: '',
+    githubUrl: '',
     teamMembers: '',
     tags: '',
     featured: false
@@ -77,11 +83,14 @@ export default function Projects() {
     setFormData({
       title: '',
       description: '',
-      status: 'planned',
+      content: '',
+      status: 'planning',
       category: 'ai-agriculture',
       startDate: '',
       endDate: '',
       imageUrl: '',
+      liveUrl: '',
+      githubUrl: '',
       teamMembers: '',
       tags: '',
       featured: false
@@ -94,11 +103,14 @@ export default function Projects() {
     setFormData({
       title: project.title,
       description: project.description,
+      content: project.content,
       status: project.status,
       category: project.category,
       startDate: project.startDate.toDate().toISOString().split('T')[0],
       endDate: project.endDate ? project.endDate.toDate().toISOString().split('T')[0] : '',
       imageUrl: project.imageUrl || '',
+      liveUrl: project.liveUrl || '',
+      githubUrl: project.githubUrl || '',
       teamMembers: project.teamMembers.join(', '),
       tags: project.tags.map(tag => 
         typeof tag === 'string' ? tag : `${tag.name}|${tag.color || ''}`
@@ -128,68 +140,69 @@ export default function Projects() {
     }
   };
 
+  const handleFormat = (command: string) => {
+    document.execCommand(command, false);
+    const contentDiv = document.getElementById('project-content');
+    if (contentDiv) {
+      setFormData(prev => ({ ...prev, content: contentDiv.innerHTML }));
+    }
+  };
+
+  const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
+    const content = e.currentTarget.innerHTML;
+    setFormData(prev => ({ ...prev, content }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      console.log('Form Data:', formData); // Debug log
+      // Get the content from the contentEditable div
+      const contentDiv = document.getElementById('project-content');
+      const content = contentDiv ? contentDiv.innerHTML : formData.content;
 
-      // Create a clean project data object
       const projectData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
+        content: content, // Use the content from the div
         status: formData.status,
         category: formData.category,
         startDate: Timestamp.fromDate(new Date(formData.startDate)),
         endDate: formData.endDate ? Timestamp.fromDate(new Date(formData.endDate)) : null,
         imageUrl: formData.imageUrl.trim() || '',
+        liveUrl: formData.liveUrl.trim() || '',
+        githubUrl: formData.githubUrl.trim() || '',
         teamMembers: formData.teamMembers.split(',').map(member => member.trim()).filter(Boolean),
         tags: formData.tags.split(',').map(tag => {
           const [tagName, color] = tag.trim().split('|');
           return color ? { name: tagName.trim(), color: color.trim() } : tagName.trim();
         }).filter(Boolean),
-        featured: formData.featured, // Keep as is - should be boolean from checkbox
+        featured: formData.featured,
         createdAt: editingProject?.createdAt || Timestamp.now()
       };
 
-      console.log('Project Data to save:', {
-        ...projectData,
-        featured: Boolean(projectData.featured) // Log the actual boolean value
-      });
-
       if (editingProject) {
-        // Update existing project - explicitly include featured flag
-        const projectRef = doc(db!, 'projects', editingProject.id);
-        const updateData = {
-          ...projectData,
-          featured: Boolean(projectData.featured) // Ensure boolean
-        };
-        await updateDoc(projectRef, updateData);
-        console.log('Updated project with featured:', Boolean(projectData.featured));
+        // Update existing project
+        const projectRef = doc(db, 'projects', editingProject.id);
+        await updateDoc(projectRef, projectData);
       } else {
-        // Add new project - explicitly include featured flag
-        const newProjectData = {
-          ...projectData,
-          featured: Boolean(projectData.featured) // Ensure boolean
-        };
-        const docRef = await addDoc(collection(db!, 'projects'), newProjectData);
-        console.log('Added new project with ID:', docRef.id, 'featured:', Boolean(projectData.featured));
+        // Add new project
+        await addDoc(collection(db, 'projects'), projectData);
       }
 
       // Add activity log
-      await addDoc(collection(db!, 'activities'), {
+      await addDoc(collection(db, 'activities'), {
         type: 'project',
         action: editingProject ? 'updated' : 'created',
         title: formData.title,
         timestamp: Timestamp.now(),
-        user: 'Admin',
-        featured: Boolean(projectData.featured) // Log the featured status
+        user: 'Admin'
       });
 
       setIsFormOpen(false);
       resetForm();
-      await fetchProjects(); // Make sure to await this
+      await fetchProjects();
     } catch (error) {
       console.error('Error saving project:', error);
     } finally {
@@ -238,7 +251,17 @@ export default function Projects() {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-lg font-medium text-gray-900">{project.title}</h3>
-                      <p className="text-sm text-gray-500">{project.status}</p>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        project.status === 'published' ? 'bg-green-100 text-green-800' :
+                        project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                        project.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                        project.status === 'planning' ? 'bg-purple-100 text-purple-800' :
+                        project.status === 'under-review' ? 'bg-orange-100 text-orange-800' :
+                        project.status === 'on-hold' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {project.status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      </span>
                       <p className="mt-1 text-sm text-gray-600">{project.description}</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {project.tags.map((tag, index) => {
@@ -282,13 +305,14 @@ export default function Projects() {
 
       {/* Add/Edit Project Form Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-3xl w-full p-8">
-            <div className="flex justify-between items-center mb-8">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-3xl w-full my-8 mx-4">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900">
                 {editingProject ? 'Edit Project' : 'Add New Project'}
               </h2>
               <button
+                type="button"
                 onClick={() => {
                   setIsFormOpen(false);
                   resetForm();
@@ -302,142 +326,211 @@ export default function Projects() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit}>
+              <div className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
                 <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Title</label>
+                        <input
+                          type="text"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea
+                          name="description"
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          rows={4}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Status</label>
+                        <select
+                          name="status"
+                          value={formData.status}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                          required
+                        >
+                          <option value="planning">Planning</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="completed">Completed</option>
+                          <option value="under-review">Under Review</option>
+                          <option value="published">Published</option>
+                          <option value="on-hold">On Hold</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Category</label>
+                        <select
+                          name="category"
+                          value={formData.category}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                          required
+                        >
+                          <option value="ai-agriculture">AI & Agriculture</option>
+                          <option value="blockchain">Blockchain</option>
+                          <option value="deepfake-detection">Deepfake Detection</option>
+                          <option value="machine-learning">Machine Learning</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                          <input
+                            type="date"
+                            name="startDate"
+                            value={formData.startDate}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">End Date</label>
+                          <input
+                            type="date"
+                            name="endDate"
+                            value={formData.endDate}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Image URL</label>
+                        <input
+                          type="url"
+                          name="imageUrl"
+                          value={formData.imageUrl}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                          placeholder="https://example.com/image.jpg"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Team Members</label>
+                        <input
+                          type="text"
+                          name="teamMembers"
+                          value={formData.teamMembers}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                          placeholder="John Doe, Jane Smith"
+                        />
+                        <p className="mt-1 text-sm text-gray-500">Separate multiple members with commas</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Tags</label>
+                        <input
+                          type="text"
+                          name="tags"
+                          value={formData.tags}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                          placeholder="AI, Machine Learning"
+                        />
+                        <p className="mt-1 text-sm text-gray-500">Separate tags with commas. For colored tags, use format: tag|color (e.g., AI|blue)</p>
+                      </div>
+
+                      <div className="flex items-center">
+                        <label className="text-sm font-medium text-gray-700 mr-2">Featured Project</label>
+                        <input
+                          type="checkbox"
+                          name="featured"
+                          checked={formData.featured}
+                          onChange={handleInputChange}
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content Editor with Formatting Controls */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Title</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                      required
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Project Content</label>
+                    <div className="mb-2 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleFormat('bold')}
+                        className="p-2 text-gray-600 hover:text-gray-900"
+                      >
+                        <FaBold />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleFormat('italic')}
+                        className="p-2 text-gray-600 hover:text-gray-900"
+                      >
+                        <FaItalic />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleFormat('underline')}
+                        className="p-2 text-gray-600 hover:text-gray-900"
+                      >
+                        <FaUnderline />
+                      </button>
+                    </div>
+                    <div
+                      id="project-content"
+                      contentEditable
+                      suppressContentEditableWarning
+                      onInput={handleContentChange}
+                      dangerouslySetInnerHTML={{ __html: formData.content }}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 min-h-[200px] p-3 overflow-y-auto"
+                      style={{ border: '1px solid #D1D5DB' }}
                     />
                   </div>
 
+                  {/* URL fields */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      rows={4}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Status</label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                      required
-                    >
-                      <option value="planned">Planned</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Category</label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                      required
-                    >
-                      <option value="ai-agriculture">AI & Agriculture</option>
-                      <option value="blockchain">Blockchain</option>
-                      <option value="deepfake-detection">Deepfake Detection</option>
-                      <option value="machine-learning">Machine Learning</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Start Date</label>
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={formData.startDate}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">End Date</label>
-                      <input
-                        type="date"
-                        name="endDate"
-                        value={formData.endDate}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Image URL</label>
+                    <label className="block text-sm font-medium text-gray-700">Live Project URL</label>
                     <input
                       type="url"
-                      name="imageUrl"
-                      value={formData.imageUrl}
+                      name="liveUrl"
+                      value={formData.liveUrl}
                       onChange={handleInputChange}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                      placeholder="https://example.com/image.jpg"
+                      placeholder="https://example.com"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Team Members</label>
+                    <label className="block text-sm font-medium text-gray-700">GitHub URL</label>
                     <input
-                      type="text"
-                      name="teamMembers"
-                      value={formData.teamMembers}
+                      type="url"
+                      name="githubUrl"
+                      value={formData.githubUrl}
                       onChange={handleInputChange}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                      placeholder="John Doe, Jane Smith"
-                    />
-                    <p className="mt-1 text-sm text-gray-500">Separate multiple members with commas</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Tags</label>
-                    <input
-                      type="text"
-                      name="tags"
-                      value={formData.tags}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                      placeholder="AI, Machine Learning"
-                    />
-                    <p className="mt-1 text-sm text-gray-500">Separate tags with commas. For colored tags, use format: tag|color (e.g., AI|blue)</p>
-                  </div>
-
-                  <div className="flex items-center">
-                    <label className="text-sm font-medium text-gray-700 mr-2">Featured Project</label>
-                    <input
-                      type="checkbox"
-                      name="featured"
-                      checked={formData.featured}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded cursor-pointer"
+                      placeholder="https://github.com/username/repo"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-6 border-t">
+              <div className="flex justify-end space-x-3 p-6 border-t">
                 <button
                   type="button"
                   onClick={() => {

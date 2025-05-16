@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import Section from '../components/ui/Section';
-import Card from '../components/ui/Card';
+import ResearchCard from '../components/ui/ResearchCard';
 import { FaArrowRight, FaLaptop, FaRobot, FaLock, FaCalculator } from 'react-icons/fa';
 
 interface ResearchPaper {
@@ -12,6 +12,7 @@ interface ResearchPaper {
   title: string;
   abstract: string;
   authors: string[];
+  status: 'planning' | 'in-progress' | 'completed' | 'published' | 'under-review' | 'on-hold';
   category: 'nlp' | 'vision' | 'quantum' | 'security';
   keywords: string[];
   publicationDate: Timestamp;
@@ -105,6 +106,7 @@ export default function Research() {
           title: data.title || 'Untitled Research',
           abstract: data.abstract || 'No abstract available',
           authors: Array.isArray(data.authors) ? data.authors : [],
+          status: data.status || 'planning',
           category: data.category || 'nlp',
           keywords: Array.isArray(data.tags) ? data.tags : [], // Using tags as keywords
           publicationDate: data.publicationDate || Timestamp.now(),
@@ -151,8 +153,10 @@ export default function Research() {
       {/* Hero Section */}
       <div className="bg-primary-800 text-white py-16">
         <div className="container">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Research Areas</h1>
-          <p className="text-xl text-primary-100 max-w-3xl">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-gradient bg-gradient-to-r from-white via-primary-200 to-white bg-[length:200%_100%] bg-clip-text text-transparent">
+            Research Areas
+          </h1>
+          <p className="text-xl max-w-3xl animate-gradient bg-gradient-to-r from-white via-primary-200 to-white bg-[length:200%_100%] bg-clip-text text-transparent">
             Explore our diverse research areas where we're pushing the boundaries of knowledge and technology.
           </p>
         </div>
@@ -199,62 +203,21 @@ export default function Research() {
               </div>
             </div>
             
-            <div className="space-y-6">
-              {getPapersByCategory(activeCategory).map((paper) => (
-                <Card key={paper.id} className="hover:shadow-md transition-shadow">
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-3">{paper.title}</h3>
-                    <p className="text-gray-600 mb-4">{paper.abstract}</p>
-                    
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {paper.keywords.map((keyword, idx) => (
-                        <span 
-                          key={idx}
-                          className={`text-xs font-medium px-2.5 py-0.5 rounded-full bg-${activeCategoryData.color}-100 text-${activeCategoryData.color}-700`}
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="text-sm text-gray-500">
-                      {paper.authors.join(', ')}
-                      {paper.venue && ` • ${paper.venue}`}
-                      {paper.publicationDate && ` • ${paper.publicationDate.toDate().toLocaleDateString()}`}
-                    </div>
-
-                    <div className="mt-4">
-                      {paper.doi && (
-                        <a 
-                          href={`https://doi.org/${paper.doi}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700 mr-4"
-                        >
-                          DOI
-                        </a>
-                      )}
-                      {paper.url && (
-                        <a 
-                          href={paper.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700"
-                        >
-                          View Paper
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </Card>
+            <div className="grid grid-cols-1 gap-8">
+              {getPapersByCategory(activeCategory).map((paper, index) => (
+                <ResearchCard
+                  key={paper.id}
+                  {...paper}
+                  delay={index * 0.1}
+                />
               ))}
-
+              
               {getPapersByCategory(activeCategory).length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-gray-500">
                     {activeCategory === 'all' 
                       ? 'No research papers found. Please add some papers through the admin panel.'
-                      : `No papers found in ${activeCategoryData.title}.`
+                      : `No research papers found in ${researchCategories.find(cat => cat.id === activeCategory)?.title || 'this category'}.`
                     }
                   </p>
                 </div>
@@ -263,24 +226,6 @@ export default function Research() {
           </div>
         </motion.div>
       </Section>
-      
-      {/* CTA Section */}
-      <Section bgColor="bg-primary-50">
-        <div className="text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold mb-4">Interested in Our Research?</h2>
-          <p className="text-gray-600 mb-8">
-            Learn more about our work, publications, and opportunities to get involved with our research initiatives.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/projects" className="btn btn-primary">
-              Explore Projects
-            </Link>
-            <Link to="/team" className="btn btn-outline">
-              Meet Our Researchers
-            </Link>
-          </div>
-        </div>
-      </Section>
     </>
   );
-} 
+}

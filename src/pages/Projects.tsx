@@ -15,11 +15,14 @@ interface Project {
   id: string;
   title: string;
   description: string;
-  status: 'planned' | 'in-progress' | 'completed';
+  content: string;
+  status: 'planning' | 'in-progress' | 'completed' | 'published' | 'under-review' | 'on-hold';
   category: 'ai-agriculture' | 'blockchain' | 'deepfake-detection' | 'machine-learning';
   startDate: Timestamp;
   endDate?: Timestamp | null;
   imageUrl?: string;
+  liveUrl?: string;
+  githubUrl?: string;
   teamMembers: string[];
   tags: Tag[];
   featured: boolean;
@@ -80,11 +83,14 @@ export default function Projects() {
           id: doc.id,
           title: data.title || 'Untitled Project',
           description: data.description || 'No description available',
-          status: data.status || 'planned',
+          content: data.content || '',
+          status: data.status || 'planning',
           category: data.category || 'ai-agriculture',
           startDate: data.startDate || Timestamp.now(),
           endDate: data.endDate || null,
           imageUrl: data.imageUrl || '',
+          liveUrl: data.liveUrl || '',
+          githubUrl: data.githubUrl || '',
           teamMembers: Array.isArray(data.teamMembers) ? data.teamMembers : [],
           tags: Array.isArray(data.tags) 
             ? data.tags.map(tag => typeof tag === 'string' ? { name: tag, color: 'primary' } : tag)
@@ -128,8 +134,10 @@ export default function Projects() {
       {/* Hero Section */}
       <div className="bg-primary-800 text-white py-16">
         <div className="container">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Research Projects</h1>
-          <p className="text-xl text-primary-100 max-w-3xl">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-gradient bg-gradient-to-r from-white via-primary-200 to-white bg-[length:200%_100%] bg-clip-text text-transparent">
+            Our Research Projects
+          </h1>
+          <p className="text-xl max-w-3xl animate-gradient bg-gradient-to-r from-white via-primary-200 to-white bg-[length:200%_100%] bg-clip-text text-transparent">
             Explore our cutting-edge research projects across different domains of artificial intelligence, 
             blockchain technology, and machine learning.
           </p>
