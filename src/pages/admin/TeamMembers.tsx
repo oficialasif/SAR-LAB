@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../../config/firebase';
+import { db } from '../../config/firebase.config';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 
 interface TeamMember {
