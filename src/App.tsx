@@ -28,6 +28,24 @@ function App() {
     <AuthProvider>
       <FirebaseTest />
       <Routes>
+        {/* Admin Routes - Place these first */}
+        <Route path="/admin/login" element={<Login />} />
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/*" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <Routes>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="team" element={<TeamMembers />} />
+                <Route path="projects" element={<AdminProjects />} />
+                <Route path="research" element={<AdminResearch />} />
+                {/* Catch any other admin routes */}
+                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+              </Routes>
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+
         {/* Public Routes */}
         <Route path="/" element={<Layout><Home /></Layout>} />
         
@@ -52,24 +70,6 @@ function App() {
         <Route path="/news" element={<Layout><News /></Layout>} />
         <Route path="/team" element={<Layout><Team /></Layout>} />
         <Route path="/faq" element={<Layout><FAQ /></Layout>} />
-
-        {/* Admin Routes */}
-        <Route path="/admin/login" element={<Login />} />
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-        
-        {/* Protected Admin Routes */}
-        <Route path="/admin/*" element={
-          <ProtectedRoute>
-            <AdminLayout>
-              <Routes>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="team" element={<TeamMembers />} />
-                <Route path="projects" element={<AdminProjects />} />
-                <Route path="research" element={<AdminResearch />} />
-              </Routes>
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
 
         {/* 404 - Not Found */}
         <Route path="*" element={
