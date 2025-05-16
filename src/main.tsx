@@ -5,14 +5,14 @@ import './index.css'
 import App from './App.tsx'
 
 // Initialize Firebase
-import { auth, db } from './config/firebase';
+import { auth, db } from './config/firebase.config'
 if (!auth || !db) {
-  console.error('Firebase services not initialized properly');
+  console.error('Firebase services not initialized properly')
 }
 
 // Initialize AOS (Animate On Scroll) with error handling
-import AOS from 'aos'; 
-import 'aos/dist/aos.css';
+import AOS from 'aos'
+import 'aos/dist/aos.css'
 
 try {
   AOS.init({
@@ -20,28 +20,28 @@ try {
     once: false,
     easing: 'ease-in-out',
     delay: 100,
-  });
-  console.log('AOS initialized successfully');
+  })
+  console.log('AOS initialized successfully')
 } catch (error) {
-  console.warn('Error initializing AOS, continuing without animations:', error);
+  console.warn('Error initializing AOS, continuing without animations:', error)
 }
 
 // Error boundary for development
-const rootElement = document.getElementById('root');
+const rootElement = document.getElementById('root')
 
 if (rootElement) {
   try {
-    const root = createRoot(rootElement);
+    const root = createRoot(rootElement)
     root.render(
       <StrictMode>
         <BrowserRouter>
           <App />
         </BrowserRouter>
       </StrictMode>,
-    );
-    console.log('React app rendered successfully');
+    )
+    console.log('React app rendered successfully')
   } catch (error) {
-    console.error('Failed to render React app:', error);
+    console.error('Failed to render React app:', error)
     
     // Fallback rendering in case of error
     rootElement.innerHTML = `
@@ -53,8 +53,8 @@ if (rootElement) {
           Refresh
         </button>
       </div>
-    `;
+    `
   }
 } else {
-  console.error('Root element not found!');
+  console.error('Root element not found!')
 }
