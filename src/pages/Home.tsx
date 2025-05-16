@@ -10,9 +10,6 @@ import Hero from '../components/ui/Hero';
 import InfoCard from '../components/ui/InfoCard';
 import ProjectCard from '../components/ui/ProjectCard';
 
-// Placeholder image imports - replace with actual images
-import heroImage from '../assets/images/hero-placeholder.jpg';
-
 interface Project {
   id: string;
   title: string;
@@ -78,7 +75,6 @@ export default function Home() {
       {/* Hero Section */}
       <Hero 
         title="Applied Research in Security & Intelligence"
-        subtitle="SAR Laboratory - Cutting-edge research in AI, blockchain, and machine learning solutions."
         ctaText="Explore Our Projects"
         ctaLink="/projects"
         secondaryCtaText="Meet Our Team"
@@ -128,9 +124,14 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {featuredProjects.map((project, index) => (
                 <ProjectCard
+                  delay={index * 0.2}
+                  id={project.id}
+                  title={project.title}
+                  description={project.description}
+                  imageUrl={project.imageUrl}
+                  tags={project.tags}
+                  status="published"
                   key={project.id}
-                  {...project}
-                  delay={index * 0.1}
                 />
               ))}
               {featuredProjects.length === 0 && (

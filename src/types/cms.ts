@@ -1,3 +1,16 @@
+// Base Project interface
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  imageUrl?: string;
+  liveUrl?: string;
+  githubUrl?: string;
+  tags: { name: string; color?: string; }[];
+  featured?: boolean;
+}
+
 export type Status = 'completed' | 'submitted' | 'pending' | 'reviewing';
 
 export interface TeamMember {

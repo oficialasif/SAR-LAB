@@ -3,23 +3,19 @@ import { motion } from 'framer-motion';
 
 interface HeroProps {
   title: string;
-  subtitle: string;
   ctaText: string;
   ctaLink: string;
   secondaryCtaText?: string;
   secondaryCtaLink?: string;
-  imageSrc?: string;
   backgroundImage?: string;
 }
 
 export default function Hero({
   title,
-  subtitle,
   ctaText,
   ctaLink,
   secondaryCtaText,
   secondaryCtaLink,
-  imageSrc,
   backgroundImage = 'https://images.unsplash.com/photo-1526378800651-c32d170fe6f8?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 }: HeroProps) {
   return (

@@ -22,14 +22,6 @@ import TeamMembers from './pages/admin/TeamMembers';
 import AdminProjects from './pages/admin/Projects';
 import AdminResearch from './pages/admin/Research';
 
-// Temporary placeholder component for pages we haven't created yet
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="container py-20 text-center">
-    <h1 className="text-3xl font-bold mb-4">{title}</h1>
-    <p className="text-gray-600">This page is under construction.</p>
-  </div>
-);
-
 function App() {
   return (
     <AuthProvider>

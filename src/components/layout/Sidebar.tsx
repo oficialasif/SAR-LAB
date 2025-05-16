@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaHome, FaFlask, FaHistory, FaNewspaper, FaUsers, FaQuestionCircle, FaLaptopCode, FaMicroscope } from 'react-icons/fa';
+import { FaHome, FaFlask, FaHistory, FaNewspaper, FaUsers, FaQuestionCircle, FaMicroscope } from 'react-icons/fa';
 import { IoMdClose, IoMdMenu } from 'react-icons/io';
+import type { ReactElement } from 'react';
 
 interface NavItem {
-  name: string;
+  title: string;
   path: string;
-  icon: JSX.Element;
+  icon: ReactElement;
   children?: { name: string; path: string }[];
 }
 
 const navItems: NavItem[] = [
-  { name: 'Home', path: '/', icon: <FaHome className="text-xl" /> },
+  { title: 'Home', path: '/', icon: <FaHome className="text-xl" /> },
   { 
-    name: 'Research Areas', 
+    title: 'Research Areas', 
     path: '/research', 
     icon: <FaMicroscope className="text-xl" />,
     children: [
@@ -25,7 +26,7 @@ const navItems: NavItem[] = [
     ] 
   },
   { 
-    name: 'Projects', 
+    title: 'Projects', 
     path: '/projects', 
     icon: <FaFlask className="text-xl" />,
     children: [
@@ -35,9 +36,9 @@ const navItems: NavItem[] = [
       { name: 'Machine Learning', path: '/projects/machine-learning' },
     ] 
   },
-  { name: 'History', path: '/history', icon: <FaHistory className="text-xl" /> },
+  { title: 'History', path: '/history', icon: <FaHistory className="text-xl" /> },
   { 
-    name: 'News & Awards', 
+    title: 'News & Awards', 
     path: '/news', 
     icon: <FaNewspaper className="text-xl" />,
     children: [
@@ -46,8 +47,8 @@ const navItems: NavItem[] = [
       { name: 'Awards', path: '/news/awards' },
     ] 
   },
-  { name: 'Team', path: '/team', icon: <FaUsers className="text-xl" /> },
-  { name: 'FAQ', path: '/faq', icon: <FaQuestionCircle className="text-xl" /> },
+  { title: 'Team', path: '/team', icon: <FaUsers className="text-xl" /> },
+  { title: 'FAQ', path: '/faq', icon: <FaQuestionCircle className="text-xl" /> },
 ];
 
 export default function Sidebar() {
@@ -150,7 +151,7 @@ export default function Sidebar() {
         <nav className="p-4">
           <ul className="space-y-2">
             {navItems.map((item) => (
-              <li key={item.name}>
+              <li key={item.title}>
                 {item.children ? (
                   <div>
                     <button
@@ -159,15 +160,15 @@ export default function Sidebar() {
                           ? 'bg-gray-200 text-gray-800' 
                           : 'hover:bg-gray-200 text-gray-700'
                       }`}
-                      onClick={() => toggleSubMenu(item.name)}
+                      onClick={() => toggleSubMenu(item.title)}
                     >
                       <div className="flex items-center">
                         <span className="mr-3">{item.icon}</span>
-                        <span>{item.name}</span>
+                        <span>{item.title}</span>
                       </div>
                       <svg
                         className={`w-4 h-4 transition-transform ${
-                          expandedMenus.includes(item.name) ? 'rotate-180' : ''
+                          expandedMenus.includes(item.title) ? 'rotate-180' : ''
                         }`}
                         fill="none"
                         stroke="currentColor"
@@ -182,7 +183,7 @@ export default function Sidebar() {
                       </svg>
                     </button>
                     
-                    {expandedMenus.includes(item.name) && (
+                    {expandedMenus.includes(item.title) && (
                       <ul className="mt-1 ml-6 space-y-1">
                         {item.children.map((child) => (
                           <li key={child.name}>
@@ -225,7 +226,7 @@ export default function Sidebar() {
                     }}
                   >
                     <span className="mr-3">{item.icon}</span>
-                    <span>{item.name}</span>
+                    <span>{item.title}</span>
                   </NavLink>
                 )}
               </li>

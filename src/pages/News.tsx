@@ -115,18 +115,6 @@ export default function News() {
   // Sort by date (most recent first)
   const sortedItems = [...filteredItems].sort((a, b) => b.date.getTime() - a.date.getTime());
   
-  // Get icon based on item type
-  const getTypeIcon = (type: ItemType) => {
-    switch (type) {
-      case 'news':
-        return <FaNewspaper className="text-blue-500" />;
-      case 'event':
-        return <FaChalkboardTeacher className="text-green-500" />;
-      case 'award':
-        return <FaAward className="text-orange-500" />;
-    }
-  };
-  
   return (
     <>
       {/* Hero Section */}

@@ -1,23 +1,17 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Timestamp } from 'firebase/firestore';
 
 interface Tag {
   name: string;
-  color: string;
+  color?: string;
 }
 
 interface ProjectCardProps {
   id: string;
   title: string;
   description: string;
-  content?: string;
   imageUrl?: string;
   status: string;
-  category: string;
-  startDate?: Timestamp;
-  endDate?: Timestamp;
-  teamMembers: string[];
   tags: Tag[];
   liveUrl?: string;
   githubUrl?: string;
@@ -30,10 +24,9 @@ export default function ProjectCard({
   description,
   imageUrl,
   status,
-  category,
-  startDate,
-  teamMembers,
   tags,
+  liveUrl,
+  githubUrl,
   delay = 0
 }: ProjectCardProps) {
   // Status color classes
@@ -96,8 +89,13 @@ export default function ProjectCard({
 
         <div className="flex items-center justify-between mt-4">
           <div className="text-sm text-gray-600">
-            {startDate && (
-              <span>Started: {startDate.toDate().toLocaleDateString()}</span>
+            {liveUrl && (
+              <span>Live: {liveUrl}</span>
+            )}
+          </div>
+          <div className="text-sm text-gray-600">
+            {githubUrl && (
+              <span>GitHub: {githubUrl}</span>
             )}
           </div>
           <Link
