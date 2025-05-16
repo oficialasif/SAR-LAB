@@ -28,23 +28,37 @@ function App() {
     <AuthProvider>
       <FirebaseTest />
       <Routes>
-        {/* Admin Routes - Place these first */}
+        {/* Admin Routes - Simplified */}
         <Route path="/admin/login" element={<Login />} />
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/admin/*" element={
+        <Route path="/admin/dashboard" element={
           <ProtectedRoute>
             <AdminLayout>
-              <Routes>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="team" element={<TeamMembers />} />
-                <Route path="projects" element={<AdminProjects />} />
-                <Route path="research" element={<AdminResearch />} />
-                {/* Catch any other admin routes */}
-                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-              </Routes>
+              <Dashboard />
             </AdminLayout>
           </ProtectedRoute>
         } />
+        <Route path="/admin/team" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <TeamMembers />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/projects" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminProjects />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/research" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminResearch />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
         {/* Public Routes */}
         <Route path="/" element={<Layout><Home /></Layout>} />

@@ -27,8 +27,15 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!currentUser) {
     console.log('No user found, redirecting to login');
-    // Redirect to login page but save the attempted url
-    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    // Save the current path for redirect after login
+    const returnPath = location.pathname;
+    return (
+      <Navigate 
+        to="/admin/login" 
+        state={{ returnTo: returnPath }}
+        replace 
+      />
+    );
   }
 
   console.log('User authenticated, rendering protected content');

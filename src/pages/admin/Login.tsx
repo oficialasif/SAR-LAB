@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function Login() {
@@ -8,6 +8,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,7 +18,9 @@ export default function Login() {
       setError('');
       setLoading(true);
       await signIn(email, password);
-      navigate('/admin/dashboard');
+      // Get return path from state or default to dashboard
+      const returnPath = location.state?.returnTo || '/admin/dashboard';
+      navigate(returnPath);
     } catch (error) {
       setError('Failed to sign in. Please check your credentials.');
       console.error('Login error:', error);
