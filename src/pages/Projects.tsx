@@ -29,18 +29,12 @@ interface Project {
   createdAt: Timestamp;
 }
 
-const projectCategories = [
-  { id: 'all', name: 'All Projects' },
-  { id: 'ai-agriculture', name: 'AI in Agriculture' },
-  { id: 'blockchain', name: 'Blockchain Applications' },
-  { id: 'deepfake-detection', name: 'Deepfake Detection' },
-  { id: 'machine-learning', name: 'Machine Learning' }
-];
-
-export default function Projects() {
+const projectCategories = [  { id: 'all', name: 'All Projects' },  { id: 'ai-agriculture', name: 'AI in Agriculture' },  { id: 'blockchain', name: 'Blockchain Applications' },  { id: 'deepfake-detection', name: 'Deepfake Detection' },  { id: 'machine-learning', name: 'Machine Learning' }];export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6; // 3x2 grid
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -53,6 +47,7 @@ export default function Projects() {
     const hash = location.hash.replace('#', '');
     if (hash && projectCategories.some(cat => cat.id === hash)) {
       setActiveCategory(hash);
+      setCurrentPage(1); // Reset to first page when category changes
     }
     
     // Check if we navigated from a sub-path
@@ -60,6 +55,7 @@ export default function Projects() {
     const subPath = path.split('/').pop();
     if (subPath && projectCategories.some(cat => cat.id === subPath)) {
       setActiveCategory(subPath);
+      setCurrentPage(1); // Reset to first page when category changes
       // Redirect to main page with hash
       navigate('/projects#' + subPath, { replace: true });
     }
@@ -111,6 +107,7 @@ export default function Projects() {
   
   const handleCategoryChange = (categoryId: string) => {
     setActiveCategory(categoryId);
+    setCurrentPage(1); // Reset to first page when category changes
     navigate(`/projects#${categoryId}`);
   };
   
@@ -120,7 +117,56 @@ export default function Projects() {
     }
     return projects.filter(project => project.category === categoryId);
   };
-  
+
+  // Calculate pagination
+  const filteredProjects = getProjectsByCategory(activeCategory);
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProjects = filteredProjects.slice(startIndex, endIndex);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Generate page numbers
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total pages are less than max visible
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always show first page
+      pageNumbers.push(1);
+      
+      if (currentPage > 3) {
+        pageNumbers.push('...');
+      }
+      
+      // Show pages around current page
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+        pageNumbers.push(i);
+      }
+      
+      if (currentPage < totalPages - 2) {
+        pageNumbers.push('...');
+      }
+      
+      // Always show last page
+      if (totalPages > 1) {
+        pageNumbers.push(totalPages);
+      }
+    }
+    
+    return pageNumbers;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -147,7 +193,7 @@ export default function Projects() {
       {/* Category Tabs */}
       <div className="bg-white shadow-md">
         <div className="container">
-          <div className="flex flex-wrap -mb-px overflow-x-auto">
+          <div className="flex flex-wrap overflow-x-auto">
             {projectCategories.map((category) => (
               <button
                 key={category.id}
@@ -166,32 +212,79 @@ export default function Projects() {
       </div>
       
       {/* Projects Grid */}
-      <Section>
+      <Section className="pt-6">
         <motion.div
           key={activeCategory}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
+          className="container mx-auto"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {getProjectsByCategory(activeCategory).map((project, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {currentProjects.map((project, index) => (
               <ProjectCard
                 key={project.id}
                 {...project}
                 delay={index * 0.1}
               />
             ))}
+            
+            {currentProjects.length === 0 && (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500">
+                  {activeCategory === 'all' 
+                    ? 'No projects found. Please add some projects through the admin panel.'
+                    : `No projects found in ${projectCategories.find(cat => cat.id === activeCategory)?.name || 'this category'}.`
+                  }
+                </p>
+              </div>
+            )}
           </div>
 
-          {getProjectsByCategory(activeCategory).length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">
-                {activeCategory === 'all' 
-                  ? 'No projects found. Please add some projects through the admin panel.'
-                  : `No projects found in ${projectCategories.find(cat => cat.id === activeCategory)?.name || 'this category'}.`
-                }
-              </p>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-2 mt-8">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded-md ${
+                  currentPage === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                }`}
+              >
+                Previous
+              </button>
+              
+              {getPageNumbers().map((pageNum, index) => (
+                <button
+                  key={index}
+                  onClick={() => typeof pageNum === 'number' ? handlePageChange(pageNum) : null}
+                  className={`px-3 py-1 rounded-md ${
+                    pageNum === currentPage
+                      ? 'bg-primary-600 text-white'
+                      : pageNum === '...'
+                      ? 'bg-white text-gray-700 cursor-default'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                  }`}
+                  disabled={pageNum === '...'}
+                >
+                  {pageNum}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded-md ${
+                  currentPage === totalPages
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                }`}
+              >
+                Next
+              </button>
             </div>
           )}
         </motion.div>
