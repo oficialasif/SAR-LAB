@@ -26,6 +26,7 @@ export default function ResearchManagement() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingResearch, setEditingResearch] = useState<Research | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     abstract: '',
@@ -142,7 +143,7 @@ export default function ResearchManagement() {
         category: formData.category as Research['category'],
         authors: formData.authors.split(',').map(author => author.trim()),
         pdfUrl: formData.pdfUrl,
-        publicationDate: formData.publicationDate ? Timestamp.fromDate(new Date(formData.publicationDate)) : null,
+        publicationDate: formData.publicationDate ? Timestamp.fromDate(new Date(formData.publicationDate)) : undefined,
         tags: formData.tags.split(',').map(tag => tag.trim()),
         venue: formData.venue,
         doi: formData.doi,
@@ -151,13 +152,20 @@ export default function ResearchManagement() {
 
       if (editingResearch) {
         // Update existing research
-        const updateData = {
+        const researchRef = doc(db!, 'research', editingResearch.id);
+        await updateDoc(researchRef, {
           ...researchData,
-          publicationDate: researchData.publicationDate || null // Ensure null if undefined
-        };
-        await updateDoc(doc(db!, 'research', editingResearch.id), updateData);
+          publicationDate: researchData.publicationDate || null
+        });
         
-        // Add activity log
+        setResearch(prevResearch => 
+          prevResearch.map(paper => 
+            paper.id === editingResearch.id 
+              ? { ...paper, ...researchData }
+              : paper
+          )
+        );
+        
         await addDoc(collection(db!, 'activities'), {
           type: 'research',
           action: 'updated',
@@ -165,11 +173,27 @@ export default function ResearchManagement() {
           timestamp: Timestamp.now(),
           user: 'Admin'
         });
+
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          setIsFormOpen(false);
+          resetForm();
+        }, 2000);
       } else {
         // Add new research
-        await addDoc(collection(db!, 'research'), researchData);
+        const docRef = await addDoc(collection(db!, 'research'), {
+          ...researchData,
+          publicationDate: researchData.publicationDate || null
+        });
         
-        // Add activity log
+        const newResearch = {
+          ...researchData,
+          id: docRef.id,
+          publicationDate: researchData.publicationDate || Timestamp.now()
+        };
+        setResearch(prevResearch => [newResearch, ...prevResearch]);
+        
         await addDoc(collection(db!, 'activities'), {
           type: 'research',
           action: 'created',
@@ -177,11 +201,14 @@ export default function ResearchManagement() {
           timestamp: Timestamp.now(),
           user: 'Admin'
         });
-      }
 
-      setIsFormOpen(false);
-      resetForm();
-      fetchResearch();
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          setIsFormOpen(false);
+          resetForm();
+        }, 2000);
+      }
     } catch (error) {
       console.error('Error saving research:', error);
     } finally {
@@ -199,6 +226,13 @@ export default function ResearchManagement() {
 
   return (
     <div className="space-y-6">
+      {/* Success Message */}
+      {showSuccess && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50 animate-fade-in-out">
+          Research paper saved successfully!
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Research Papers</h1>
         <button

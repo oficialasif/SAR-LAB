@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { FaGithub, FaGlobe, FaArrowRight } from 'react-icons/fa';
 
 interface Tag {
   name: string;
@@ -48,7 +49,7 @@ export default function ProjectCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
-      className="group bg-white rounded-lg shadow-md overflow-hidden h-full flex flex-col"
+      className="group bg-white rounded-lg shadow-md overflow-hidden h-full flex flex-col hover:shadow-lg transition-shadow duration-300"
     >
       <div className="relative overflow-hidden">
         <img 
@@ -87,30 +88,37 @@ export default function ProjectCard({
           ))}
         </div>
 
-        <div className="flex items-center justify-between mt-4">
-          <div className="text-sm text-gray-600">
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex items-center space-x-3">
             {liveUrl && (
-              <span>Live: {liveUrl}</span>
+              <a
+                href={liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-gray-600 hover:text-primary-600 transition-colors"
+                title="View Live Demo"
+              >
+                <FaGlobe className="w-5 h-5" />
+              </a>
             )}
-          </div>
-          <div className="text-sm text-gray-600">
             {githubUrl && (
-              <span>GitHub: {githubUrl}</span>
+              <a
+                href={githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-gray-600 hover:text-primary-600 transition-colors"
+                title="View on GitHub"
+              >
+                <FaGithub className="w-5 h-5" />
+              </a>
             )}
           </div>
           <Link
             to={`/projects/${id}`}
-            className="text-primary-600 font-medium hover:text-primary-800 transition-colors inline-flex items-center"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition-colors group"
           >
             Learn more
-            <svg 
-              className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
+            <FaArrowRight className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </div>
